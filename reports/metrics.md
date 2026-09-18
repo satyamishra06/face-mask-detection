@@ -1,19 +1,28 @@
-# Dataset Notes
+## Model Performance & Limitations
 
-**Source:** andrewmvd Face Mask Detection dataset (Kaggle) — 853 images, PASCAL VOC annotations
-**Extraction:** Cropped individual faces from bounding boxes via `src/extract_dataset.py`
+**Final approach:** MobileNetV2 (frozen base) + Focal Loss + oversampling (minority
+classes duplicated to 700 samples each in training).
 
-## Class distribution (raw, before balancing)
-| Class | Count |
-|---|---|
-| mask | 3232 |
-| no_mask | 717 |
-| improper_mask | 123 |
+**Result:** Model achieves 79% overall accuracy but this is driven entirely by the
+majority `mask` class (recall 1.00). `no_mask` and `improper_mask` recall = 0%.
 
-**Observation:** Significant class imbalance — `mask` has ~26x more samples than `improper_mask`.
-This matches a known limitation reported in prior work (YOLOv5 face mask studies found poor
-performance specifically on the "mask worn incorrectly" class due to this same imbalance).
+**Root cause identified:** Diagnostic analysis of raw cropped face images showed
+average crop sizes of only 26-48 pixels (mask: 33x36, no_mask: 26x29,
+improper_mask: 43x48), sourced from the dataset's group/crowd photographs.
+These crops are upscaled 5-8x to the required 224x224 input size, which
+destroys the fine-grained visual detail (mask edges, nose/mouth visibility)
+needed to distinguish between classes. Combined with severe class imbalance
+(86 improper_mask vs 2262 mask training images), the model could not learn
+discriminative features for the minority classes regardless of the class
+imbalance technique applied (class weighting, oversampling, and Focal Loss
+were all tested and produced identical results, confirming the bottleneck
+is data resolution/quantity, not training methodology).
 
-**Plan:** Apply class weighting during training + heavier data augmentation on the
-`improper_mask` class to partially compensate. Will report per-class F1-score separately
-in final evaluation, since overall accuracy alone would be misleading with this imbalance.
+**This validates two of our own "Existing Gaps"** (Section 4 of synopsis):
+"Real-World Conditions" (camera quality/distance affecting performance) and
+"Limited Classification" (improperly worn masks being harder to detect).
+
+**Recommended future fix:** Source a dataset with close-up, higher-resolution
+face images per class (e.g., MaskedFace-Net's individual portrait images
+rather than cropped-from-crowd images) to provide sufficient pixel detail
+for the model to learn from.
