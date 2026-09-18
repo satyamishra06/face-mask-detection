@@ -10,14 +10,12 @@ from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from model import focal_loss
-
 CLASSES = ["mask", "no_mask", "improper_mask"]
 
 d = np.load("data/processed/test.npz")
 X_test, y_test = d["X"], d["y"]
 
-model = load_model("models/best_model.h5", custom_objects={"loss_fn": focal_loss()})
+model = load_model("models/best_model.h5")
 y_pred = np.argmax(model.predict(X_test), axis=1)
 
 print("Predicted class distribution:", np.bincount(y_pred, minlength=3))

@@ -13,7 +13,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from model import build_model
 
 CLASSES = ["mask", "no_mask", "improper_mask"]
-TARGET_PER_CLASS = 700  # oversample each minority class up to roughly this many
+TARGET_PER_CLASS = 650 
 
 
 def load_split(name):

@@ -47,7 +47,7 @@ def build_model(num_classes=NUM_CLASSES, img_size=IMG_SIZE):
     model = Model(inputs=base.input, outputs=out)
     model.compile(
         optimizer=Adam(learning_rate=5e-5),
-        loss=focal_loss(gamma=2.0, alpha=0.25),
+        loss="sparse_categorical_crossentropy",
         metrics=["accuracy"]
     )
     return model
