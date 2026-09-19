@@ -2,7 +2,7 @@
 Loads cropped face images from data/raw/<class>/, resizes and normalizes them,
 splits into train/val/test sets, and saves as .npz files in data/processed/.
 """
-
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import os
 import cv2
 import numpy as np
@@ -28,7 +28,9 @@ def load_images():
                 continue
 
             img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
-            img = img.astype("float32") / 255.0
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # MobileNetV2 expects RGB, OpenCV loads BGR
+            img = img.astype("float32")
+            
 
             X.append(img)
             y.append(label_idx)
@@ -57,6 +59,7 @@ def split_and_save(X, y):
 
 if __name__ == "__main__":
     X, y = load_images()
+    X = preprocess_input(X)
     print(f"\nTotal images loaded: {len(X)}")
     split_and_save(X, y)
     print("\nSaved to data/processed/ (train.npz, val.npz, test.npz)")

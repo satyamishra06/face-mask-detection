@@ -3,7 +3,7 @@ Real-time face mask detection using webcam feed.
 Detects faces with OpenCV, classifies each with the trained CNN,
 and draws bounding boxes + labels live.
 """
-
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
@@ -37,8 +37,9 @@ while True:
             continue
 
         face_resized = cv2.resize(face_img, (224, 224))
-        face_normalized = face_resized.astype("float32") / 255.0
-        face_input = np.expand_dims(face_normalized, axis=0)
+        face_rgb = cv2.cvtColor(face_resized, cv2.COLOR_BGR2RGB)
+        face_input = preprocess_input(face_rgb.astype("float32"))
+        face_input = np.expand_dims(face_input, axis=0)
 
         pred = model.predict(face_input, verbose=0)
         idx = np.argmax(pred)
